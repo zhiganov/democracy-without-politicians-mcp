@@ -11,7 +11,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { BOOK_INFO, KEY_TOPICS, MULTI_BODY, ATTRIBUTION, CHAPTERS } from "./data.js";
+import { BOOK_INFO, KEY_TOPICS, MULTI_BODY, GLOSSARY, CASES, ATTRIBUTION, CHAPTERS } from "./data.js";
 
 // ---- build a paragraph search index at startup ----
 interface Para {
@@ -19,11 +19,15 @@ interface Para {
   title: string;
   text: string;
 }
+// Bibliography entries ("Blaney, Jack. 2004a. ...") pollute keyword retrieval; skip them.
+const looksLikeCitation = (t: string) =>
+  /^[A-Z][A-Za-z’'.-]+,\s+[A-Z]/.test(t) && /[(\s]\d{4}[a-z]?[).,]/.test(t.slice(0, 90));
+
 const PARAS: Para[] = [];
 for (const c of CHAPTERS) {
   for (const raw of c.text.split(/\n\n+/)) {
     const t = raw.trim();
-    if (t.length >= 80) PARAS.push({ ch: c.number, title: c.title, text: t });
+    if (t.length >= 80 && !looksLikeCitation(t)) PARAS.push({ ch: c.number, title: c.title, text: t });
   }
 }
 
@@ -73,15 +77,38 @@ function searchContent(query: string, limit = 8) {
   }));
 }
 
-// Retrieve the single best VERBATIM paragraph for a curated entry point. Scoped to the
-// hinted chapters first; falls back to the whole book if the hint yields nothing.
+// Retrieve the single best VERBATIM paragraph for a curated entry point. Searches the whole
+// book by query, with a score boost for the hinted chapters (a nudge, not a hard filter — so
+// a wrong hint degrades gracefully instead of forcing an off-topic fallback).
 function retrieveExcerpt(query: string, chapters: number[]) {
-  const scoped = chapters.length
-    ? scoreParas(query, PARAS.filter((p) => chapters.includes(p.ch)))
-    : [];
-  const best = (scoped.length ? scoped : scoreParas(query, PARAS))[0];
-  if (!best) return null;
-  return { chapter: best.p.ch, chapterTitle: best.p.title, excerpt: clip(best.p.text, 900) };
+  const scored = scoreParas(query, PARAS);
+  if (!scored.length) return null;
+  const boosted = scored.map((s) => ({ p: s.p, score: s.score + (chapters.includes(s.p.ch) ? 6 : 0) }));
+  boosted.sort((a, b) => b.score - a.score);
+  const best = boosted[0].p;
+  return { chapter: best.ch, chapterTitle: best.title, excerpt: clip(best.text, 900) };
+}
+
+// Per-chapter verbatim anchor passages: the paragraphs that best match the chapter
+// title, falling back to the longest, returned in document order.
+function getHighlights(number: number, k = 3) {
+  const ch = CHAPTERS.find((c) => c.number === number);
+  if (!ch) return { error: "Chapter not found. Use list_chapters for numbers and titles." };
+  const paras = PARAS.filter((p) => p.ch === number);
+  const ranked = scoreParas(ch.title, paras).map((s) => s.p);
+  const longest = [...paras].sort((a, b) => b.text.length - a.text.length);
+  const chosen: Para[] = [];
+  for (const p of [...ranked, ...longest]) {
+    if (chosen.length >= k) break;
+    if (!chosen.includes(p)) chosen.push(p);
+  }
+  chosen.sort((a, b) => paras.indexOf(a) - paras.indexOf(b));
+  return {
+    chapter: ch.number,
+    title: ch.title,
+    attribution: ATTRIBUTION,
+    highlights: chosen.map((p) => clip(p.text, 700)),
+  };
 }
 
 function getChapter(opts: { number?: number; title?: string; offset?: number }) {
@@ -159,6 +186,40 @@ const TOOLS = [
       "Bouricius's signature 'multi-body sortition' reference design (Chapter 16): the seven specialised randomly-selected bodies (Agenda Council, Interest Panels, Review Panels, Policy Juries, Coordination Council, Rules Council, Oversight Councils), each with a VERBATIM excerpt from the book.",
     inputSchema: { type: "object" as const, properties: {} },
   },
+  {
+    name: "get_glossary",
+    description:
+      "List the key terms Bouricius coins or relies on (electoral imperative, multi-body sortition, neuro-politics, Policy Jury, …). Use define_term to get the verbatim passage where he introduces each.",
+    inputSchema: { type: "object" as const, properties: {} },
+  },
+  {
+    name: "define_term",
+    description:
+      "Look up a term from the glossary and return the VERBATIM passage where Bouricius introduces or defines it, plus its chapter. With no term, lists the available terms.",
+    inputSchema: {
+      type: "object" as const,
+      properties: { term: { type: "string", description: "A glossary term or substring of one" } },
+    },
+  },
+  {
+    name: "find_cases",
+    description:
+      "The real-world examples Bouricius cites (Ancient Athens, Ostbelgien, the Paris assembly, citizens' assemblies, deliberative polls, …), each with a VERBATIM excerpt and chapter. Optionally filter by name.",
+    inputSchema: {
+      type: "object" as const,
+      properties: { name: { type: "string", description: "Filter cases by name substring" } },
+    },
+  },
+  {
+    name: "get_chapter_highlights",
+    description:
+      "Return a chapter's VERBATIM anchor passages (the few paragraphs that carry it), by chapter number (1-17).",
+    inputSchema: {
+      type: "object" as const,
+      properties: { number: { type: "integer", description: "Chapter number 1-17" } },
+      required: ["number"],
+    },
+  },
 ];
 
 const server = new Server(
@@ -223,6 +284,46 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
           }),
         })),
       });
+    case "get_glossary":
+      return json({
+        note: "Use define_term to get the verbatim passage for any of these.",
+        terms: GLOSSARY.map((g) => ({ term: g.term, chapters: g.chapters })),
+      });
+    case "define_term": {
+      const q = String(a.term ?? "").trim().toLowerCase();
+      if (!q)
+        return json({ terms: GLOSSARY.map((g) => g.term) });
+      const g = GLOSSARY.find((e) => e.term.toLowerCase().includes(q));
+      if (!g)
+        return json({ error: `No term matched "${a.term}". Call define_term with no argument to list terms.` });
+      return json({
+        term: g.term,
+        chapters: g.chapters,
+        attribution: ATTRIBUTION,
+        ...(retrieveExcerpt(g.query, g.chapters) ?? {
+          excerpt: null,
+          note: "No single passage matched; use search_content.",
+        }),
+      });
+    }
+    case "find_cases": {
+      const filter = String(a.name ?? "").trim().toLowerCase();
+      const list = filter ? CASES.filter((c) => c.name.toLowerCase().includes(filter)) : CASES;
+      return json({
+        note: "Each excerpt is Bouricius's verbatim text. Use get_chapter or search_content to read more.",
+        attribution: ATTRIBUTION,
+        cases: list.map((c) => ({
+          name: c.name,
+          chapters: c.chapters,
+          ...(retrieveExcerpt(c.query, c.chapters) ?? {
+            excerpt: null,
+            note: "No single passage matched; use search_content.",
+          }),
+        })),
+      });
+    }
+    case "get_chapter_highlights":
+      return json(getHighlights(typeof a.number === "number" ? a.number : -1));
     default:
       return { content: [{ type: "text" as const, text: `Unknown tool: ${name}` }], isError: true };
   }

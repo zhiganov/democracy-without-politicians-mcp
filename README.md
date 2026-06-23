@@ -26,6 +26,12 @@ If you build on this, keep that contract: surface his text, attribute him, and n
 | `search_content` | Keyword search → the most relevant **verbatim** paragraphs + chapter |
 | `get_principles` | 12 key topics, each with a **verbatim excerpt** and its chapter |
 | `get_multi_body_design` | The seven bodies of the multi-body sortition design (Ch 16), each with a **verbatim excerpt** |
+| `get_glossary` | ~20 terms he coins or relies on (index) |
+| `define_term` | The **verbatim passage** where he introduces a given term |
+| `find_cases` | Real-world examples he cites (Athens, Ostbelgien, BC, Paris, Oregon, Fishkin, …), each with a **verbatim excerpt** |
+| `get_chapter_highlights` | A chapter's **verbatim** anchor passages |
+
+Every tool returns Bouricius's own words; the topic/term/case *labels* are navigation only. A build test (`scripts/verify-enrichment.mjs`) asserts every excerpt any tool can return is a verbatim substring of the book.
 
 ## Build
 
