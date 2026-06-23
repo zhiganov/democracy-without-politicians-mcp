@@ -1,0 +1,40 @@
+MIT License
+
+Copyright (c) 2026 Artem Zhiganov
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+-------------------------------------------------------------------------------
+
+NOTE ON THE EMBEDDED BOOK TEXT
+
+The MIT license above covers the SOFTWARE only — the MCP server code, scripts,
+and configuration. It does NOT cover the book text embedded in
+`src/book-data.ts`, which is:
+
+  "Democracy Without Politicians: Government By the People"
+  by Terrill "Terry" Bouricius (Routledge, 2026),
+  (c) the author, licensed CC BY-NC-ND 4.0 (Open Access).
+
+That text is included here verbatim with the author's express permission,
+granted 2026-06-23, on the condition that this tool surface his actual words
+rather than AI-generated summaries. The text may be redistributed only under
+CC BY-NC-ND 4.0: non-commercial use, with attribution, and no derivatives of
+the text. A free Open Access copy is at
+https://www.taylorfrancis.com/books/9781041125549

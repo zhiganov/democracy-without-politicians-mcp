@@ -1,0 +1,22 @@
+{
+  "name": "democracy-without-politicians-mcp",
+  "version": "0.2.0",
+  "type": "module",
+  "private": true,
+  "description": "MCP for Terry Bouricius, Democracy Without Politicians (Routledge 2026). Verbatim search/retrieval over the book, shared with the author's permission (2026-06-23); displays his actual words, not AI summaries.",
+  "bin": {
+    "democracy-without-politicians-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "gen": "node scripts/gen-data.mjs",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}
