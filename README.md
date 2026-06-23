@@ -71,4 +71,4 @@ Restart the client after adding.
 
 *Democracy Without Politicians: Government By the People* by Terrill "Terry" Bouricius (Routledge, 2026), CC BY-NC-ND 4.0 (Open Access). This tool is shared with the author's express permission (2026-06-23) and displays verbatim text only.
 
-**Dual-licensed** (see [`LICENSE`](LICENSE)): the server code is MIT; the embedded book text in `src/book-data.ts` remains © Terry Bouricius under CC BY-NC-ND 4.0 — non-commercial, with attribution, no derivatives of the text. Generated with the `book-power` pipeline.
+**Dual-licensed** (see [`LICENSE`](LICENSE) + [`NOTICE`](NOTICE)): the server code is MIT; the embedded book text in `src/book-data.ts` remains © Terry Bouricius under CC BY-NC-ND 4.0 — non-commercial, with attribution, no derivatives of the text. Generated with the `book-power` pipeline.

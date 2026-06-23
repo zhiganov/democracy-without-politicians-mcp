@@ -1,0 +1,18 @@
+NOTICE — embedded book text
+
+The MIT license in LICENSE covers the software only: the MCP server code,
+scripts, and configuration.
+
+It does NOT cover the book text embedded in `src/book-data.ts`, which is:
+
+    "Democracy Without Politicians: Government By the People"
+    by Terrill "Terry" Bouricius (Routledge, 2026),
+    (c) the author, licensed CC BY-NC-ND 4.0 (Open Access).
+
+That text is included here verbatim with the author's express permission,
+granted 2026-06-23, on the condition that this tool surface his actual words
+rather than AI-generated summaries.
+
+The text may be redistributed only under CC BY-NC-ND 4.0: non-commercial use,
+with attribution, and no derivatives of the text itself. A free Open Access
+copy is available at https://www.taylorfrancis.com/books/9781041125549
