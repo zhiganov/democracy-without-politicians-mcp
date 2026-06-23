@@ -76,3 +76,54 @@ export const MULTI_BODY = {
     { name: "Oversight Councils", kind: "meta-legislative", chapter: 16, query: "Oversight Council complaints biased presentations hire and fire staff" },
   ] as BodyEntry[],
 };
+
+// Glossary — terms Bouricius coins or leans on. Each is a label + the query/chapter the
+// server uses to retrieve the VERBATIM passage where he introduces or defines it.
+export interface GlossaryEntry {
+  term: string;
+  chapters: number[];
+  query: string;
+}
+
+export const GLOSSARY: GlossaryEntry[] = [
+  { term: "Electoral imperative", chapters: [3], query: "electoral imperative re-election incentive win keep office" },
+  { term: "Multi-body sortition", chapters: [16], query: "split the legislative functions across multiple specialised sortition bodies" },
+  { term: "Sortition", chapters: [6], query: "sortition selection of representatives by lot rather than election" },
+  { term: "Descriptive representation", chapters: [6], query: "descriptively representative mirror population microcosm" },
+  { term: "Neuro-politics", chapters: [7], query: "neuro-politics" },
+  { term: "Policy Jury", chapters: [16], query: "Policy Jury secret ballot nomothetai final decision" },
+  { term: "Deliberative democracy", chapters: [8], query: "deliberative democracy considered judgment deliberation reasons" },
+  { term: "Participatory democracy", chapters: [8], query: "participatory democracy citizen participation referendums" },
+  { term: "Truncated sortition", chapters: [16, 17], query: "truncated sortition" },
+  { term: "Self-selection", chapters: [16], query: "self-selection self-selected volunteers bias" },
+  { term: "Stratified random sampling", chapters: [6, 11], query: "stratified random sampling demographic quotas lottery" },
+  { term: "The aristocratic principle of elections", chapters: [2], query: "aristocratic nature of elections choosing the best Manin" },
+  { term: "Wisdom of crowds", chapters: [16], query: "wisdom of crowds diverse group aggregate judgment" },
+  { term: "Public judgment", chapters: [7], query: "public judgment versus public opinion considered" },
+  { term: "Mini-public", chapters: [11], query: "mini-public randomly selected microcosm sample citizens" },
+  { term: "Nomothetai", chapters: [16], query: "nomothetai Athenian legislative panels" },
+  { term: "Accountability", chapters: [13], query: "accountability corruption procedures answerable" },
+  { term: "Legitimacy", chapters: [14], query: "legitimacy consent social contract authority" },
+  { term: "Proportional representation", chapters: [4], query: "proportional representation" },
+  { term: "Quasi-mandatory service", chapters: [16], query: "quasi-mandatory service jury duty obligation compensation" },
+];
+
+// Cases — real-world examples Bouricius cites. Same retrieval pattern.
+export interface CaseEntry {
+  name: string;
+  chapters: number[];
+  query: string;
+}
+
+export const CASES: CaseEntry[] = [
+  { name: "Ancient Athens", chapters: [5, 6], query: "ancient Athens Athenian democracy lottery ecclesia" },
+  { name: "Ostbelgien (German-speaking Belgium)", chapters: [14, 16], query: "Ostbelgien German-speaking Belgium permanent citizens council" },
+  { name: "British Columbia Citizens' Assembly", chapters: [14], query: "British Columbia Citizens Assembly electoral reform" },
+  { name: "Paris Citizens' Assembly", chapters: [14], query: "Paris permanent sortition assembly arm France" },
+  { name: "French Citizens' Convention for Climate", chapters: [14], query: "yellow vest Macron French Convention Climate" },
+  { name: "Oregon Citizens' Initiative Review", chapters: [14], query: "Oregon Citizens Initiative Review institutionalized ballot" },
+  { name: "Brussels Deliberative Committees", chapters: [17], query: "Brussels-Capital Region Deliberative Committees institutionalized" },
+  { name: "G1000 (Belgium / Van Reybrouck)", chapters: [4], query: "growing interest sortition Belgium prize-winning Belgian author" },
+  { name: "Deliberative polling (Fishkin)", chapters: [14], query: "James Fishkin Stanford developed deliberative polling" },
+  { name: "Ned Crosby's Citizens Jury", chapters: [14], query: "Ned Crosby Citizens Jury model" },
+];
