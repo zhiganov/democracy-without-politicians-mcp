@@ -7,6 +7,9 @@
 // curated entry points that retrieve a verbatim excerpt at request time, never paraphrase.
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import crypto from "node:crypto";
+import express from "express";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -222,12 +225,13 @@ const TOOLS = [
   },
 ];
 
-const server = new Server(
-  { name: "democracy-without-politicians", version: "0.2.0" },
-  { capabilities: { tools: {} } },
-);
+function createServer() {
+  const server = new Server(
+    { name: "democracy-without-politicians", version: "0.2.0" },
+    { capabilities: { tools: {} } },
+  );
 
-server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
+  server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
 
 server.setRequestHandler(CallToolRequestSchema, async (req) => {
   const name = req.params.name;
@@ -329,6 +333,63 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
   }
 });
 
-const transport = new StdioServerTransport();
-await server.connect(transport);
-console.error("democracy-without-politicians MCP server running on stdio");
+  return server;
+}
+
+// === START SERVER (dual stdio / HTTP) ===
+// stdio for local Claude clients; StreamableHTTP for Railway. Mode is selected by
+// process.env.PORT (Railway sets it). No auth: the book is CC BY-NC-ND open access and
+// every tool returns verbatim text with attribution.
+
+async function startHttpServer() {
+  const app = express();
+  app.use(express.json());
+
+  app.get("/health", (_req, res) => {
+    res.json({ status: "ok", name: "democracy-without-politicians", version: "0.2.0" });
+  });
+
+  const sessions = new Map<string, StreamableHTTPServerTransport>();
+
+  app.all("/mcp", async (req, res) => {
+    const existingSessionId = req.headers["mcp-session-id"] as string | undefined;
+
+    if (existingSessionId && sessions.has(existingSessionId)) {
+      const transport = sessions.get(existingSessionId)!;
+      await transport.handleRequest(req, res, req.body);
+      return;
+    }
+
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: () => crypto.randomUUID(),
+    });
+    const sessionServer = createServer();
+    await sessionServer.connect(transport);
+
+    await transport.handleRequest(req, res, req.body);
+
+    const newSessionId = res.getHeader("mcp-session-id") as string | undefined;
+    if (newSessionId) {
+      sessions.set(newSessionId, transport);
+      transport.onclose = () => sessions.delete(newSessionId);
+    }
+  });
+
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => {
+    console.error(`democracy-without-politicians MCP server running on HTTP port ${port}`);
+  });
+}
+
+async function startStdioServer() {
+  const server = createServer();
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("democracy-without-politicians MCP server running on stdio");
+}
+
+const isHttp = !!process.env.PORT;
+(isHttp ? startHttpServer() : startStdioServer()).catch((error) => {
+  console.error("Fatal error:", error);
+  process.exit(1);
+});
