@@ -47,12 +47,36 @@ node scripts/verify-rework.mjs  # dump the retrieved verbatim excerpts to eyebal
 
 ## Use it in Claude
 
-**Claude Code (user scope — loads from any directory):**
+It's hosted — no clone, no Node, no build. Point your client at the remote server.
+
+**Claude Code (user scope — works from any directory):**
+```bash
+claude mcp add --transport http -s user democracy-without-politicians https://democracy-without-politicians-mcp-production.up.railway.app/mcp
+```
+
+**Claude Desktop** (`claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "democracy-without-politicians": {
+      "url": "https://democracy-without-politicians-mcp-production.up.railway.app/mcp",
+      "transport": "http"
+    }
+  }
+}
+```
+
+Restart the client after adding.
+
+### Run it locally instead (dev / offline)
+
+Clone and build (see [Build](#build) above), then register the local stdio server:
+
 ```bash
 claude mcp add democracy-without-politicians -s user -- node "<abs-path>/dist/index.js"
 ```
 
-**Claude Desktop** (`claude_desktop_config.json`):
+Or in `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
@@ -63,8 +87,6 @@ claude mcp add democracy-without-politicians -s user -- node "<abs-path>/dist/in
   }
 }
 ```
-
-Restart the client after adding.
 
 ## What you can ask
 
