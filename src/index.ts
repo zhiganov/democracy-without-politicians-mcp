@@ -10,6 +10,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import crypto from "node:crypto";
 import express from "express";
+import * as mcpcat from "mcpcat";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -225,11 +226,28 @@ const TOOLS = [
   },
 ];
 
+// mcpcat in exporters-only mode forwards mcp_initialize / mcp_tools_list /
+// mcp_tool_call events to the same Book Power PostHog project as the website
+// and sibling MCPs. Gated on POSTHOG_API_KEY: missing key = no telemetry, no errors.
+const POSTHOG_API_KEY = process.env.POSTHOG_API_KEY;
+
 function createServer() {
   const server = new Server(
     { name: "democracy-without-politicians", version: "0.2.0" },
     { capabilities: { tools: {} } },
   );
+
+  if (POSTHOG_API_KEY) {
+    mcpcat.track(server, null, {
+      exporters: {
+        posthog: {
+          type: "posthog",
+          apiKey: POSTHOG_API_KEY,
+          host: "https://us.i.posthog.com",
+        },
+      },
+    });
+  }
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
 
